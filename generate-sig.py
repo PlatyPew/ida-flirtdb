@@ -17,6 +17,9 @@ def extract_a(deb_path: str) -> str:
 
     Args:
         deb_name: location of deb file
+
+    Returns:
+        directory location of package
     """
     pkg_path = deb_path[:-4]
 
@@ -37,6 +40,15 @@ def extract_a(deb_path: str) -> str:
 
 
 def a_to_pat(pkg_path: str, pat_name: str) -> str:
+    """Converts all .a files into a .pat file
+
+    Args:
+        pkg_path: directory of package
+        pat_name: name to give pat file
+
+    Returns:
+        file location of pat
+    """
     # Glob the .a files in the package folder
     a_path = glob.glob(os.path.join(pkg_path, "**/*.a"), recursive=True)
     pat_path = os.path.join(pkg_path, pat_name)
@@ -74,6 +86,15 @@ def _clean_exc(exc_name: str) -> None:
 
 
 def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
+    """Convert .pat file into .sig file
+
+    Args:
+        pat_path: list of all pat file location
+        sig_path: path of sig file
+
+    Returns:
+        file location of sig file
+    """
     exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL).returncode
