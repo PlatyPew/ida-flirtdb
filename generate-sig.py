@@ -3,7 +3,6 @@ import argparse
 import glob
 import os
 import re
-import shutil
 import subprocess
 
 TAR_PATH = "/opt/homebrew/bin/gtar"
@@ -76,7 +75,7 @@ def _clean_exc(exc_name: str) -> None:
 
     with open(exc_name, 'w') as f:
         cleaned_funcs: list[str] = []
-        s = re.sub(r';.+', '', s).strip()
+        s = re.sub(r';.+\s', '', s).strip()
         funcs_pairs = s.split(os.linesep * 2)
         for funcs_pair in funcs_pairs:
             funcs = funcs_pair.splitlines()
@@ -87,6 +86,7 @@ def _clean_exc(exc_name: str) -> None:
             funcs.append('')  #double linesep
             cleaned_funcs.extend(funcs[start:])
         s = os.linesep.join(cleaned_funcs)
+        s = re.sub(r'\+\+', '+', s).strip()
         _ = f.write(s)
 
 
@@ -103,11 +103,12 @@ def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
     exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL).returncode
-    if exit_code != 0:
+    while exit_code != 0:
         _clean_exc(sig_path[:-4] + ".exc")
-    _ = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+        exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
+                                   stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL).returncode
+
     os.remove(sig_path[:-4] + ".exc")
 
     _ = subprocess.run([ZIPSIG_PATH, sig_path],
@@ -138,10 +139,13 @@ def main():
         f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/**/*.deb", recursive=True)
 
     all_pat_paths: list[str] = []
+    all_pkg_paths: list[str] = []
 
     for deb_path in all_deb_paths:
         print(f"Extracting {deb_path}")
         pkg_path = extract_a(deb_path)
+        all_pkg_paths.append(pkg_path)
+
         print("Converting to pat format")
         pat_path = a_to_pat(pkg_path, packages['name'])
         all_pat_paths.append(pat_path)
@@ -149,17 +153,11 @@ def main():
     sig_location = os.path.join(SIG_PATH, packages['arch'])
     os.makedirs(sig_location, exist_ok=True)
 
+    print("Converting to sig format")
     _ = pat_to_sig(
         all_pat_paths,
         os.path.join(sig_location,
                      f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig"))
-
-    print("Deleting files")
-    for pat_paths in all_pat_paths:
-        os.remove(pat_paths)
-
-    for pkg_path in all_pkg_paths:
-        shutil.rmtree(pkg_path)
 
 
 if __name__ == "__main__":
