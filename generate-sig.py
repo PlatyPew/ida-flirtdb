@@ -17,6 +17,7 @@ ZIPSIG_PATH = os.path.join(FLAIR_PATH, "zipsig")
 def _path_fix(path: str) -> str:
     return path.replace("+", "-")
 
+
 def extract_a(deb_path: str) -> str:
     """Extract all .a files from .deb package
 
@@ -61,7 +62,7 @@ def a_to_pat(pkg_path: str, pat_name: str) -> str:
     """
     # Glob the .a files in the package folder
     a_path = glob.glob(os.path.join(pkg_path, "**/*.a"), recursive=True)
-    pat_path = os.path.join(pkg_path, pat_name)
+    pat_path = _path_fix(os.path.join(pkg_path, pat_name))
     _ = subprocess.run([PELF_PATH] + a_path + [pat_path],
                        stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL)
@@ -160,20 +161,23 @@ def main():
 
         all_pkg_paths.append(pkg_path)
 
-        if not os.path.exists(os.path.join(pkg_path, packages['name'] + ".pat")):
+        if not os.path.exists(_path_fix(os.path.join(pkg_path, packages['name'] + ".pat"))):
             print("Converting to pat format")
             _ = a_to_pat(pkg_path, packages['name'])
 
-    sig_location = os.path.join(SIG_PATH, packages['arch'])
+    sig_location = _path_fix(os.path.join(SIG_PATH, packages['arch']))
     os.makedirs(sig_location, exist_ok=True)
 
     print("Converting to sig format")
-    all_pat_paths = glob.glob(f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/*/{packages['name']}*_{packages['arch']}/*.pat")
+    all_pat_paths = glob.glob(
+        f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/*/{packages['name']}*_{packages['arch']}/*.pat"
+    )
 
     _ = pat_to_sig(
         all_pat_paths,
-        os.path.join(sig_location,
-                     f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig"))
+        os.path.join(
+            sig_location,
+            _path_fix(f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig")))
 
 
 if __name__ == "__main__":
