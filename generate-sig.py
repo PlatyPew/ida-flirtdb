@@ -132,17 +132,19 @@ def main():
     _ = parser.add_argument('-p', '--package', type=str, help="package to use", required=True)
 
     args = parser.parse_args()
+    distro: str = args.distro
+    arch: str = args.arch
+    package: str = args.package
 
     packages = {
-        "distro": args.distro,
-        "arch": args.arch,
-        "name": args.package,
+        "distro": distro,
+        "arch": arch,
+        "name": package,
     }
 
     all_deb_paths = glob.glob(
         f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/**/*.deb", recursive=True)
 
-    all_pat_paths: list[str] = []
     all_pkg_paths: list[str] = []
 
     for deb_path in all_deb_paths:
@@ -161,12 +163,12 @@ def main():
             print("Converting to pat format")
             pat_path = a_to_pat(pkg_path, packages['name'])
 
-        all_pat_paths.append(pat_path)
-
     sig_location = os.path.join(SIG_PATH, packages['arch'])
     os.makedirs(sig_location, exist_ok=True)
 
     print("Converting to sig format")
+    all_pat_paths = glob.glob(f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/*/{packages['name']}*_{packages['arch']}/*.pat")
+
     _ = pat_to_sig(
         all_pat_paths,
         os.path.join(sig_location,
