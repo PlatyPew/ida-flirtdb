@@ -27,7 +27,9 @@ def extract_a(deb_path: str) -> str:
     os.makedirs(pkg_path, exist_ok=True)
 
     # Extract a deb file and only extract data.tar.zst and store the stdout into a variable
-    data_tar = subprocess.run([AR_PATH, 'p', deb_path, 'data.tar.zst'], capture_output=True).stdout
+    ar_files = subprocess.run([AR_PATH, 't', deb_path], capture_output=True).stdout
+    data_tar_type = ar_files.decode().strip().split("\n")[2]
+    data_tar = subprocess.run([AR_PATH, 'p', deb_path, data_tar_type], capture_output=True).stdout
 
     # Extract the contents of data.tar.zst from the data_tar variable
     _ = subprocess.run([TAR_PATH, '-C', pkg_path, '--zstd', '-xv', '--wildcards', "*.a"],
