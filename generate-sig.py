@@ -14,6 +14,9 @@ SIGMAKE_PATH = os.path.join(FLAIR_PATH, "sigmake")
 ZIPSIG_PATH = os.path.join(FLAIR_PATH, "zipsig")
 
 
+def _path_fix(path: str) -> str:
+    return path.replace("+", "-")
+
 def extract_a(deb_path: str) -> str:
     """Extract all .a files from .deb package
 
@@ -23,7 +26,7 @@ def extract_a(deb_path: str) -> str:
     Returns:
         directory location of package
     """
-    pkg_path = deb_path[:-4]
+    pkg_path = _path_fix(deb_path[:-4])
 
     # Create a folder package_name
     os.makedirs(pkg_path, exist_ok=True)
@@ -150,7 +153,7 @@ def main():
     for deb_path in all_deb_paths:
         if os.path.exists(deb_path[:-4]):
             print(f"Already extracted {deb_path}")
-            pkg_path = deb_path[:-4]
+            pkg_path = _path_fix(deb_path[:-4])
         else:
             print(f"Extracting {deb_path}")
             pkg_path = extract_a(deb_path)
