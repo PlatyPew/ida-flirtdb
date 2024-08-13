@@ -177,7 +177,7 @@ def main():
         all_pat_paths,
         os.path.join(
             sig_location,
-            _path_fix(f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig")))
+            _path_fix(f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig".replace('-dev', ''))))
 
 
 if __name__ == "__main__":
