@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import glob
 import os
 import re
@@ -128,9 +129,9 @@ def main():
     args = parser.parse_args()
 
     packages = {
-        "distro": "ubuntu",
-        "arch": "amd64",
-        "name": "libc6-dev",
+        "distro": args.distro,
+        "arch": args.arch,
+        "name": args.package,
     }
 
     all_deb_paths = glob.glob(
@@ -141,21 +142,24 @@ def main():
     for deb_path in all_deb_paths:
         print(f"Extracting {deb_path}")
         pkg_path = extract_a(deb_path)
-        print(f"Converting to pat format")
+        print("Converting to pat format")
         pat_path = a_to_pat(pkg_path, packages['name'])
         all_pat_paths.append(pat_path)
-        print(f"Deleting extracted files")
-        shutil.rmtree(pkg_path)
 
-    os.makedirs(os.path.join(SIG_PATH, packages['arch']), exist_ok=True)
+    sig_location = os.path.join(SIG_PATH, packages['arch'])
+    os.makedirs(sig_location, exist_ok=True)
 
     _ = pat_to_sig(
         all_pat_paths,
-        os.path.join(SIG_PATH,
-                     f"./{packages['name'][:-4]}-{packages['distro']}-{packages['arch']}.sig"))
+        os.path.join(sig_location,
+                     f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig"))
 
+    print("Deleting files")
     for pat_paths in all_pat_paths:
         os.remove(pat_paths)
+
+    for pkg_path in all_pkg_paths:
+        shutil.rmtree(pkg_path)
 
 
 if __name__ == "__main__":
