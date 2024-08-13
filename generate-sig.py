@@ -117,6 +117,16 @@ def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        usage='%(prog)s [options]',
+        description="IDA FLIRT Signature Generator",
+    )
+    _ = parser.add_argument('-a', '--arch', type=str, help="architecture to use", required=True)
+    _ = parser.add_argument('-d', '--distro', type=str, default="ubuntu", help="distro to use")
+    _ = parser.add_argument('-p', '--package', type=str, help="package to use", required=True)
+
+    args = parser.parse_args()
+
     packages = {
         "distro": "ubuntu",
         "arch": "amd64",
