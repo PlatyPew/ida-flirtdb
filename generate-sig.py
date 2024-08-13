@@ -126,26 +126,23 @@ def main():
     all_deb_paths = glob.glob(
         f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/**/*.deb", recursive=True)
 
-    all_pkg_paths: list[str] = []
     all_pat_paths: list[str] = []
 
     for deb_path in all_deb_paths:
         print(f"Extracting {deb_path}")
         pkg_path = extract_a(deb_path)
-        all_pkg_paths.append(pkg_path)
         print(f"Converting to pat format")
         pat_path = a_to_pat(pkg_path, packages['name'])
         all_pat_paths.append(pat_path)
+        print(f"Deleting extracted files")
+        shutil.rmtree(pkg_path)
 
-    os.makedirs(SIG_PATH, exist_ok=True)
+    os.makedirs(os.path.join(SIG_PATH, packages['arch']), exist_ok=True)
 
     _ = pat_to_sig(
         all_pat_paths,
         os.path.join(SIG_PATH,
                      f"./{packages['name'][:-4]}-{packages['distro']}-{packages['arch']}.sig"))
-
-    for pkg_paths in all_pkg_paths:
-        shutil.rmtree(pkg_paths)
 
     for pat_paths in all_pat_paths:
         os.remove(pat_paths)
