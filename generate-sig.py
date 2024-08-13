@@ -34,11 +34,14 @@ def extract_a(deb_path: str) -> str:
     data_tar = subprocess.run([AR_PATH, 'p', deb_path, data_tar_type], capture_output=True).stdout
 
     # Extract the contents of data.tar.zst from the data_tar variable
-    _ = subprocess.run([TAR_PATH, '-C', pkg_path, '--zstd', '-xv', '--wildcards', "*.a"],
-                       input=data_tar,
-                       check=True,
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+    try:
+        _ = subprocess.run([TAR_PATH, '-C', pkg_path, '--zstd', '-x', '--wildcards', "*.a"],
+                           input=data_tar,
+                           check=True,
+                           stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+    except:
+        print("No *.a files found")
 
     return pkg_path
 
@@ -103,13 +106,14 @@ def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
     exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL).returncode
-    while exit_code != 0:
-        _clean_exc(sig_path[:-4] + ".exc")
-        exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
-                                   stdout=subprocess.DEVNULL,
-                                   stderr=subprocess.DEVNULL).returncode
+    if exit_code != 0:
+        while exit_code != 0:
+            _clean_exc(sig_path[:-4] + ".exc")
+            exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL).returncode
 
-    os.remove(sig_path[:-4] + ".exc")
+        os.remove(sig_path[:-4] + ".exc")
 
     _ = subprocess.run([ZIPSIG_PATH, sig_path],
                        stdout=subprocess.DEVNULL,
@@ -142,12 +146,21 @@ def main():
     all_pkg_paths: list[str] = []
 
     for deb_path in all_deb_paths:
-        print(f"Extracting {deb_path}")
-        pkg_path = extract_a(deb_path)
+        if os.path.exists(deb_path[:-4]):
+            print(f"Already extracted {deb_path}")
+            pkg_path = deb_path[:-4]
+        else:
+            print(f"Extracting {deb_path}")
+            pkg_path = extract_a(deb_path)
+
         all_pkg_paths.append(pkg_path)
 
-        print("Converting to pat format")
-        pat_path = a_to_pat(pkg_path, packages['name'])
+        if os.path.exists(os.path.join(pkg_path, packages['name'] + ".pat")):
+            pat_path = os.path.join(pkg_path, packages['name'] + ".pat")
+        else:
+            print("Converting to pat format")
+            pat_path = a_to_pat(pkg_path, packages['name'])
+
         all_pat_paths.append(pat_path)
 
     sig_location = os.path.join(SIG_PATH, packages['arch'])

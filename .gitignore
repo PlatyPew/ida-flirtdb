@@ -1,5 +1,8 @@
 # Python Virutal Environment
 venv/
 
+# Flair
+flair
+
 # Packages
 ubuntu/
