@@ -160,11 +160,9 @@ def main():
 
         all_pkg_paths.append(pkg_path)
 
-        if os.path.exists(os.path.join(pkg_path, packages['name'] + ".pat")):
-            pat_path = os.path.join(pkg_path, packages['name'] + ".pat")
-        else:
+        if not os.path.exists(os.path.join(pkg_path, packages['name'] + ".pat")):
             print("Converting to pat format")
-            pat_path = a_to_pat(pkg_path, packages['name'])
+            _ = a_to_pat(pkg_path, packages['name'])
 
     sig_location = os.path.join(SIG_PATH, packages['arch'])
     os.makedirs(sig_location, exist_ok=True)
