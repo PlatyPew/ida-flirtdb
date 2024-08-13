@@ -2,11 +2,13 @@
 import glob
 import os
 import re
+import shutil
 import subprocess
 
 TAR_PATH = "/opt/homebrew/bin/gtar"
 AR_PATH = "/usr/bin/ar"
 FLAIR_PATH = "./flair/"
+SIG_PATH = "./sig/"
 PELF_PATH = os.path.join(FLAIR_PATH, "pelf")
 SIGMAKE_PATH = os.path.join(FLAIR_PATH, "sigmake")
 ZIPSIG_PATH = os.path.join(FLAIR_PATH, "zipsig")
@@ -112,3 +114,42 @@ def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
                        stderr=subprocess.DEVNULL)
 
     return sig_path
+
+
+def main():
+    packages = {
+        "distro": "ubuntu",
+        "arch": "amd64",
+        "name": "libc6-dev",
+    }
+
+    all_deb_paths = glob.glob(
+        f"./{packages['distro']}/*/{packages['arch']}/{packages['name']}/**/*.deb", recursive=True)
+
+    all_pkg_paths: list[str] = []
+    all_pat_paths: list[str] = []
+
+    for deb_path in all_deb_paths:
+        print(f"Extracting {deb_path}")
+        pkg_path = extract_a(deb_path)
+        all_pkg_paths.append(pkg_path)
+        print(f"Converting to pat format")
+        pat_path = a_to_pat(pkg_path, packages['name'])
+        all_pat_paths.append(pat_path)
+
+    os.makedirs(SIG_PATH, exist_ok=True)
+
+    _ = pat_to_sig(
+        all_pat_paths,
+        os.path.join(SIG_PATH,
+                     f"./{packages['name'][:-4]}-{packages['distro']}-{packages['arch']}.sig"))
+
+    for pkg_paths in all_pkg_paths:
+        shutil.rmtree(pkg_paths)
+
+    for pat_paths in all_pat_paths:
+        os.remove(pat_paths)
+
+
+if __name__ == "__main__":
+    main()
