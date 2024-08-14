@@ -5,6 +5,6 @@ venv/
 flair
 
 # Packages
-pat/ubuntu/**
-!pat/ubuntu/**/
-!pat/ubuntu/**/*.pat.gz
+pat/**
+!pat/**/
+!pat/**/*.pat.gz
