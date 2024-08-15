@@ -5,7 +5,7 @@ import os
 import re
 import subprocess
 
-TAR_PATH = "/opt/homebrew/bin/gtar"
+TAR_PATH = "/usr/bin/tar"
 AR_PATH = "/usr/bin/ar"
 FLAIR_PATH = "./flair/"
 SIG_PATH = "./sig/"
@@ -13,9 +13,6 @@ PELF_PATH = os.path.join(FLAIR_PATH, "pelf")
 SIGMAKE_PATH = os.path.join(FLAIR_PATH, "sigmake")
 ZIPSIG_PATH = os.path.join(FLAIR_PATH, "zipsig")
 
-
-def _path_fix(path: str) -> str:
-    return path.replace("+", "-")
 
 
 def extract_a(deb_path: str) -> str:
@@ -27,7 +24,7 @@ def extract_a(deb_path: str) -> str:
     Returns:
         directory location of package
     """
-    pkg_path = _path_fix(deb_path[:-4])
+    pkg_path = deb_path[:-4]
 
     # Create a folder package_name
     os.makedirs(pkg_path, exist_ok=True)
@@ -62,7 +59,7 @@ def a_to_pat(pkg_path: str, pat_name: str) -> str:
     """
     # Glob the .a files in the package folder
     a_path = glob.glob(os.path.join(pkg_path, "**/*.a"), recursive=True)
-    pat_path = _path_fix(os.path.join(pkg_path, pat_name))
+    pat_path = os.path.join(pkg_path, pat_name)
     _ = subprocess.run([PELF_PATH] + a_path + [pat_path],
                        stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL)
@@ -107,13 +104,13 @@ def pat_to_sig(pat_path: list[str], sig_path: str) -> str:
     Returns:
         file location of sig file
     """
-    exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
+    exit_code = subprocess.run([SIGMAKE_PATH, "-N"] + pat_path + [sig_path],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL).returncode
     if exit_code != 0:
         while exit_code != 0:
             _clean_exc(sig_path[:-4] + ".exc")
-            exit_code = subprocess.run([SIGMAKE_PATH] + pat_path + [sig_path],
+            exit_code = subprocess.run([SIGMAKE_PATH, "-N"] + pat_path + [sig_path],
                                        stdout=subprocess.DEVNULL,
                                        stderr=subprocess.DEVNULL).returncode
 
@@ -154,18 +151,18 @@ def main():
     for deb_path in all_deb_paths:
         if os.path.exists(deb_path[:-4]):
             print(f"Already extracted {deb_path}")
-            pkg_path = _path_fix(deb_path[:-4])
+            pkg_path = deb_path[:-4]
         else:
             print(f"Extracting {deb_path}")
             pkg_path = extract_a(deb_path)
 
         all_pkg_paths.append(pkg_path)
 
-        if not os.path.exists(_path_fix(os.path.join(pkg_path, packages['name'] + ".pat"))):
+        if not os.path.exists(os.path.join(pkg_path, packages['name'] + ".pat")):
             print("Converting to pat format")
             _ = a_to_pat(pkg_path, packages['name'])
 
-    sig_location = _path_fix(os.path.join(SIG_PATH, packages['arch']))
+    sig_location = os.path.join(SIG_PATH, packages['arch'])
     os.makedirs(sig_location, exist_ok=True)
 
     print("Converting to sig format")
@@ -177,7 +174,7 @@ def main():
         all_pat_paths,
         os.path.join(
             sig_location,
-            _path_fix(f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig".replace('-dev', ''))))
+            f"./{packages['distro']}-{packages['arch']}-{packages['name']}.sig".replace('-dev', '')))
 
 
 if __name__ == "__main__":

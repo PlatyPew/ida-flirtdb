@@ -41,9 +41,23 @@ You may need to adjust the location of `ar` and `tar` to fit your needs
 | amd64, i386        | libbrotli-dev        |     |
 | amd64, i386, amd64 | libc6-dev            | ✅  |
 | amd64, i386, amd64 | libcap-dev           |     |
+| amd64, i386, amd64 | libcrypto-dev        | ✅  |
 | amd64, i386, amd64 | libcrypto++-dev      |     |
 | amd64, i386, amd64 | libcurl4-gnutls-dev  |     |
 | amd64, i386, amd64 | libcurl4-nss-dev     |     |
+| amd64, i386, amd64 | libc++-7-dev         | ✅  |
+| amd64, i386, amd64 | libc++-8-dev         | ✅  |
+| amd64, i386, amd64 | libc++-9-dev         | ✅  |
+| amd64, i386, amd64 | libc++-10-dev        | ✅  |
+| amd64, i386, amd64 | libc++-11-dev        | ✅  |
+| amd64, i386, amd64 | libc++-12-dev        | ✅  |
+| amd64, i386, amd64 | libc++-13-dev        | ✅  |
+| amd64, i386, amd64 | libc++-14-dev        | ✅  |
+| amd64, i386, amd64 | libc++-15-dev        | ✅  |
+| amd64, i386, amd64 | libc++-16-dev        | ✅  |
+| amd64, i386, amd64 | libc++-17-dev        | ✅  |
+| amd64, i386, amd64 | libc++-18-dev        | ✅  |
+| amd64, i386, amd64 | libc++-19-dev        | ✅  |
 | amd64, i386, amd64 | libstdc++-5-dev      |     |
 | amd64, i386, amd64 | libstdc++-6-dev      |     |
 | amd64, i386, amd64 | libstdc++-7-dev      |     |
@@ -111,3 +125,15 @@ You may need to adjust the location of `ar` and `tar` to fit your needs
 | amd64, i386, amd64 | libcstdc++-12--dev | ✅  |
 | amd64, i386, amd64 | libcstdc++-13--dev | ✅  |
 | amd64, i386, amd64 | libcstdc++-14--dev | ✅  |
+| amd64, i386, amd64 | musl-dev           | ✅  |
+| amd64, i386, amd64 | libc++-7-dev       | ✅  |
+| amd64, i386, amd64 | libc++-8-dev       | ✅  |
+| amd64, i386, amd64 | libc++-9-dev       | ✅  |
+| amd64, i386, amd64 | libc++-11-dev      | ✅  |
+| amd64, i386, amd64 | libc++-13-dev      | ✅  |
+| amd64, i386, amd64 | libc++-14-dev      | ✅  |
+| amd64, i386, amd64 | libc++-15-dev      | ✅  |
+| amd64, i386, amd64 | libc++-16-dev      | ✅  |
+| amd64, i386, amd64 | libc++-17-dev      | ✅  |
+| amd64, i386, amd64 | libc++-18-dev      | ✅  |
+| amd64, i386, amd64 | libc++-19-dev      | ✅  |
