@@ -162,7 +162,7 @@ def main():
             print("Converting to pat format")
             _ = a_to_pat(pkg_path, packages['name'])
 
-    sig_location = os.path.join(SIG_PATH, packages['arch'])
+    sig_location = os.path.join(SIG_PATH, distro, packages['arch'])
     os.makedirs(sig_location, exist_ok=True)
 
     print("Converting to sig format")
