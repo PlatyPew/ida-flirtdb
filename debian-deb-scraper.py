@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
+import requests
+
 import subprocess
 import argparse
+import os
+import re
 
 RMADISON_PATH = "/usr/bin/rmadison"
 APT_CACHE_PATH = "/usr/bin/apt-cache"
+
+OUTPUT_PATH = "./debian"
 
 
 def main():
@@ -40,13 +46,18 @@ def main():
         p2 = subprocess.Popen(["grep", "Source:"], stdin=p1.stdout, stdout=subprocess.PIPE)
         p1.stdout.close()
 
-        p3 = subprocess.Popen(["cut", "-d", " ", "-f", "2"],
-                              stdin=p2.stdout,
-                              stdout=subprocess.PIPE)
+        p3 = subprocess.Popen(["head", "-n", "1"], stdin=p2.stdout, stdout=subprocess.PIPE)
         p2.stdout.close()
 
-        output, _ = p3.communicate()
+        p4 = subprocess.Popen(["cut", "-d", " ", "-f", "2"],
+                              stdin=p3.stdout,
+                              stdout=subprocess.PIPE)
+        p3.stdout.close()
+
+        output, _ = p4.communicate()
         source = output.decode().strip()
+
+    urls = []
 
     for package in packages.split("\n"):
         fields = package.split("|")
@@ -59,12 +70,42 @@ def main():
         for arch in fields[3].strip().split(","):
 
             if not source:
-                source = "#FILL IT IN YOURSELF"
+                print(f"No source found for package {name}")
+                continue
 
             arch = arch.strip()
-            path = f"{mirror}/debian/pool/main/{source[0]}/{source}/{name}_{version}_{arch}.deb"
 
-            print(path)
+            if source.startswith("lib"):
+                head = source[:4]
+            else:
+                head = source[0]
+
+            filename = f"{name}_{version}_{arch}.deb"
+            filename = re.sub(r'.:', "", filename, count=1)
+
+            path = f"{mirror}/debian/pool/main/{head}/{source}/{filename}"
+
+            urls.append(path)
+
+    os.makedirs(OUTPUT_PATH, exist_ok=True)
+    for url in urls:
+        filename = os.path.basename(url)
+        output_path = os.path.join(OUTPUT_PATH, filename)
+
+        if os.path.exists(output_path):
+            continue
+
+        print(f"Downloading {url}")
+
+        try:
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+
+            with open(output_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading {url}: {e}")
 
 
 if __name__ == "__main__":
